@@ -46,3 +46,4 @@ script/proj_cache/html/check quantity variable_802f43425335a041d9b1fe14d2431c2d.
 *.RData
 *.rdb
 script/proj_cache/html/__packages
+*.Rhistory

@@ -8,7 +8,6 @@ output:
 ---
 
 ```{r set enviroment,echo=FALSE,prompt=FALSE,warning=FALSE,message=FALSE}
-setwd("C:/Users/Richard/Desktop/GumiAnalysis2/script")
 set.seed(2015)
 require(Hmisc)
 require(caret)
@@ -71,30 +70,30 @@ checkFactorVar <- function(x , y) {
 </span>
 
 ```{r raw data process,echo=FALSE,prompt=FALSE}
-## combine the data(NOT RUN)
-# df <- read.csv("../data/20141128_order_user_part1_82537.txt", header = F)
-# columnNameDf <- read.csv("../data/meta/columnName_part1.txt" , header = F)
+# combine the data(NOT RUN)
+# df <- read.csv("./data/20141128_order_user_part1_82537.txt", header = F)
+# columnNameDf <- read.csv("./data/meta/columnName_part1.txt" , header = F)
 # names(df) <- columnNameDf$V1
-# df1 <- read.csv("../data/20141128_order_user_part2_82537.txt", header = F)
-# columnNameDf1 <- read.csv("../data/meta/columnName_part2.txt" , header = F)
+# df1 <- read.csv("./data/20141128_order_user_part2_82537.txt", header = F)
+# columnNameDf1 <- read.csv("./data/meta/columnName_part2.txt" , header = F)
 # names(df1) <- columnNameDf1$V1
 # df2 <- merge(x = df , y = df1 , by = "SubId")
 # df2$result <- 1
 # 
-# df <- read.csv("../data/20141128_not_order_user_part1_79081.txt" , header = F)
+# df <- read.csv("./data/20141128_not_order_user_part1_79081.txt" , header = F)
 # names(df) <- columnNameDf$V1
-# df1 <- read.csv("../data/20141128_not_order_user_part2_79081.txt", header = F)
+# df1 <- read.csv("./data/20141128_not_order_user_part2_79081.txt", header = F)
 # names(df1) <- columnNameDf1$V1
 # df3 <- merge(x = df , y = df1 , by = "SubId")
 # df3$result <- 0
 # 
 # df4 <- rbind(df2 , df3)
-# write.csv(df4 , file = "../data/1_combinedData.csv")
-```
-
-```{r read clean data,cache=TRUE,}
-# read the data
-df <- read.csv("../data/1_combinedData.csv")
+# write.csv(df4 , file = "./data/1_combinedData.csv")
+# ```
+# 
+# ```{r read clean data,cache=TRUE,}
+# # read the data
+# df <- read.csv("./data/1_combinedData.csv")
 ```
 
 ```{r set type,echo=FALSE,prompt=FALSE}
