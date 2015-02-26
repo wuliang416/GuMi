@@ -1,0 +1,262 @@
+---
+title: "Gumi Analysis"
+author: "Richard Wu"
+date: "Sunday, February 01, 2015"
+output:
+  html_document:
+    theme: journal
+---
+
+```{r set enviroment,echo=FALSE,prompt=FALSE,warning=FALSE,message=FALSE}
+setwd("C:/Users/Richard/Desktop/GumiAnalysis2/script")
+set.seed(2015)
+require(Hmisc)
+require(caret)
+require(pastecs)
+require(xtable)
+require(lattice)
+```
+
+```{r functions,echo=FALSE,prompt=FALSE}
+## strip the almost missing variable
+calcuMissing <- function(x) {
+  #   Calculate the Exact missing number and the percentage of missing number of a variable
+  #   x  a vector
+  data.frame(Missing = sum(is.na(x)) , MissingPercentage = sum(is.na(x)) / length(x))
+}
+
+checkFactorVar <- function(x , y) {
+  require(MASS)
+  returnVal <- NULL
+  table <- xtabs(~ x + y)
+  dimX <- dim(table)[1]
+  dimY <- dim(table)[2]
+  suppressWarnings(chisqFirst <- chisq.test(table))
+  if( dimX == 2 & dimY == 2){
+    if( (sum((chisqFirst$expected < 5)) < 1) & 
+        (sum((chisqFirst$expected < 1)) == 0) & 
+        (sum(table) > 40)){
+          suppressWarnings(returnVal <- chisq.test(table)$p.value)
+        }
+    else if( (sum((chisqFirst$expected < 5)) >= 1) &
+             (sum((chisqFirst$expected < 1)) == 0) & 
+             (sum(table) > 40)){
+                suppressWarnings(returnVal <- chisq.test(table , correct = T)$p.value)
+             }
+    else{
+          returnVal <- summary(loglm(~1 + 2 , table))$tests[1,3]
+    }
+  }else{
+    if( (sum((chisqFirst$expected <5)) < .1 * dimX * dimY) ){
+        suppressWarnings(returnVal <- chisq.test(table)$p.value)
+    }else{
+        returnVal <- summary(loglm(~1 + 2 , table))$tests[1,3]
+    }
+    
+  }
+  return(returnVal)
+}
+```
+
+##1.背景描述
+<span class="">
+<ul>
+  <li>客户的问题是什么？（业务上的）</li>
+  <li>客户希望将这个业务上的问题解决到什么程度？（量化指标）</li>
+	<li>从数据挖掘的角度将这个问题解决到什么程度？（量化指标）</li>
+	<li>达成项目目标的风险在哪里？</li>
+	<li>对于关键的指标客户是如何定义的</li>
+	<li>将业务问题转化成了哪些数据挖掘问题？</li>
+</ul>
+</span>
+
+```{r raw data process,echo=FALSE,prompt=FALSE}
+## combine the data(NOT RUN)
+# df <- read.csv("../data/20141128_order_user_part1_82537.txt", header = F)
+# columnNameDf <- read.csv("../data/meta/columnName_part1.txt" , header = F)
+# names(df) <- columnNameDf$V1
+# df1 <- read.csv("../data/20141128_order_user_part2_82537.txt", header = F)
+# columnNameDf1 <- read.csv("../data/meta/columnName_part2.txt" , header = F)
+# names(df1) <- columnNameDf1$V1
+# df2 <- merge(x = df , y = df1 , by = "SubId")
+# df2$result <- 1
+# 
+# df <- read.csv("../data/20141128_not_order_user_part1_79081.txt" , header = F)
+# names(df) <- columnNameDf$V1
+# df1 <- read.csv("../data/20141128_not_order_user_part2_79081.txt", header = F)
+# names(df1) <- columnNameDf1$V1
+# df3 <- merge(x = df , y = df1 , by = "SubId")
+# df3$result <- 0
+# 
+# df4 <- rbind(df2 , df3)
+# write.csv(df4 , file = "../data/1_combinedData.csv")
+```
+
+```{r read clean data,cache=TRUE,}
+# read the data
+df <- read.csv("../data/1_combinedData.csv")
+```
+
+```{r set type,echo=FALSE,prompt=FALSE}
+df$result <- as.factor(df$result)
+# df$OnlineId <- as.integer(df$OnlineId)
+df$JoinDate <- as.Date.character(df$JoinDate , "%Y%m%d")
+df$UserStatus <- as.factor(df$UserStatus)
+df$Warn5Flag <- as.factor(df$Warn5Flag)
+df$UserDelete <- as.factor(df$UserDelete)
+df$OaFlag <- as.factor(df$OaFlag)
+df$GenderId <- as.factor(df$GenderId)
+df$RegistedId <- as.factor(df$RegistedId)
+df$JtId <- as.factor(df$JtId)
+df$PlanId <- as.factor(df$PlanId)
+df$DeptId <- as.factor(df$DeptId)
+df$GroupFlag <- as.factor(df$GroupFlag)
+df$MighFlag <- as.factor(df$MighFlag)
+# df$UserAge <- as.integer(df$UserAge)
+df$SchoolFlag <- as.factor(df$SchoolFlag)
+df$CareerPrefer <- as.factor(df$CareerPrefer)
+df$CurPoints <- as.integer(df$CurPoints)
+df$PlanType <- as.factor(df$PlanType)
+df$PayType <- as.factor(df$PayType)
+df$ChkPrint <- as.factor(df$ChkPrint)
+df$AccFlag <- as.factor(df$AccFlag)
+df$IsQyMifi <- as.factor(df$IsQyMifi)
+df$Is4gFlag <- as.factor(df$Is4gFlag)
+# df$Imei14 not set
+# df$KeyImei not set
+# df$DateIpyhb <- as.Date(df$DateIpyhb , "%Y%m%d")
+df$Chk3yZf <- as.factor(df$Chk3yZf)
+# df$Date5ymy <- as.Date(df$Date5ymy , "%Y%m%d")
+df$DateMgtjhy <- as.Date.character(df$DateMgtjhy , "%Y%m%d")
+df$GprsType <- as.factor(df$GprsType)
+df$GprsStandardType <- as.factor(df$GprsStandardType)
+df$IphoneFlag <- as.factor(df$IphoneFlag)
+df$CreateChannel <- as.factor(df$CreateChannel)
+```
+
+##2.数据理解
+对于每一个指标
+<ul>
+  <li>缺失情况是什么样的？</li>
+  <li>分布情况是什么样的？</li>
+</ul>
+
+对于重点有关系的指标
+<ul>
+	<li>指标与结果有没有显著关系</li>
+</ul>
+
+若不能通过，则需要思考
+<ul>
+  <li>现有数据是否能支撑业务的商业目标</li>
+  <li>数据分析的目标是否正确</li>
+  <li>解决问题的思路是否正确</li>
+</ul>
+</span>
+
+<b>粗略地检查一下各个指标的数据质量</b>
+```{r exam the data quality,cache=TRUE}
+missingField <- which(sapply(df , MissingPer <- function(x){sum(is.na(x)) / length(x)}) > .5)
+
+# TODO: EXAM THE MISSING VALUE VARIABLE
+# stip the missingField
+df <- df[ , -missingField]
+
+factorField <- which(sapply(df , is.factor))
+
+# strip the id field
+factorField <- factorField[-1]
+
+# strip too many levels factor variable
+factorFieldTooManyLevels <- which(sapply(df , 
+                                         getTooManyLevelsVar <- function(x) { length(levels(x)) > 20 }))
+factorField <- factorField[!names(factorField) %in% names(factorFieldTooManyLevels)]
+factorField <- setdiff(factorField , factorFieldTooManyLevels)
+# TODO: DEAL WITH THE TOO MANY LEVELS VARIABLE
+
+#general check the factor variable
+sapply(df[,factorField] , genContegencyTable <- function(x , y){ table(x , y)} , df$result)
+```
+<b>根据上述因子类变量与结果的关系需要剔除异常数据</b>
+UserStatus == 100其他剔除(下同)<br/>
+Warn5Flag == 0<br/>
+UserDelete == 0<br/>
+OaFlag == 0<br/>
+
+```{r data clean}
+df <- subset(df , UserStatus == 100 & Warn5Flag == 0 & UserDelete == 0 & OaFlag == 0 , 
+             select = -c(UserStatus , Warn5Flag , UserDelete , OaFlag))
+```
+
+
+```{r explore data}
+inBuildIdx <- createDataPartition(df$result , p = 0.7 , list = F)
+inBuild <- df[ inBuildIdx , ]
+validation <- df[ -inBuildIdx , ]
+trainIdx <- createDataPartition(inBuild$result , p = .7 , list = F)
+training <- inBuild[ trainIdx , ]
+testing <- inBuild[ -trainIdx , ]
+```
+
+```{r explore relationship}
+factorField <- which(sapply(training , is.factor))
+factorFieldTooManyLevels <- which(sapply(df , 
+                                         getTooManyLevelsVar <- function(x) { length(levels(x)) > 20 }))
+(factorFieldCadinate <- factorField[!names(factorField) %in% names(factorFieldTooManyLevels)])
+factorFieldCadinateP.val <- sapply(training[,factorFieldCadinate] , checkFactorVar , training$result)
+(factorFieldCadinateNotSig <- which(!factorFieldCadinateP.val < .05))
+factorFieldCadinate <- setdiff(factorFieldCadinate , factorFieldCadinateNotSig)
+sapply(training[ , factorFieldCadinate] , genContegencyTable , training$result)
+```
+<b>以下指标无用</b>
+<ul>
+    <li>ChkPrint</li>
+    <li>AccFlag</li>
+    <li>IsQyMifi</li>  
+</ul>
+
+<b>检查数值类指标</b>
+```{r check quantity variable,cache=TRUE}
+(quantityField <- which(sapply(training , is.numeric)))
+
+# TODO: CHECK FOR NEAR-ZERO VARIABLE
+quantityFieldNZF <- nearZeroVar(training[,quantityField] , saveMetrics = T)
+```
+
+##对于每一个候选的数值型变量
+<span>做个图？</span>
+```{r plot for qualitative_quantivative analysis}
+histogram( ~ log10(CurPoints + 1) | result , data = training)
+densityplot( ~ log10(CurPoints + 1) | result , data = training)
+plot(density(log10(training[ training$result == 0 , 'CurPoints'] + 1)) , main = "")
+points(density(log10(training[ training$result == 1 , 'CurPoints']+1)) , col = "red" , type = 'l')
+bwplot( ~ log10(CurPoints + 1) | result , data = training)
+
+```
+<span>数值检验型</span>
+
+
+##检查网龄指标
+
+```{r check OnlineId}
+calcuMissing(training[ , "OnlineId"])
+boxplot(training$OnlineId ~ training$result)
+by(training$OnlineId , training$result , stat.desc)
+plot(density(training[ training$result == 0 , 'OnlineId']) , main = "")
+points(density(training[ training$result == 1 , 'OnlineId']) , col = "red" , type = 'l')
+uniVarLogistic <- glm(result ~ OnlineId , data = training , family = binomial)
+summary(uniVarLogistic)
+```
+网龄和是否购买有一定的关系，但这个是一个很弱的预测变量
+
+##检查年龄指标
+```{r check UserAge}
+calcuMissing(training$UserAge)
+boxplot(training$UserAge ~ training$result)
+stat.desc(training$UserAge)
+
+```
+<b>这个指标没用</b>
+
+#3.数据准备
+衍生变量如何生成
