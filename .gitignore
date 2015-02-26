@@ -34,3 +34,15 @@ Icon
 # Files that might appear on external disk
 .Spotlight-V100
 .Trashes
+
+data/1_combinedData.csv
+data/20141128_not_order_user_part1_79081.txt
+*.txt
+data/meta/2014年10月宽表字典.xlsx
+data/meta/咪咕特级会员取数需求20141121.xlsx
+script/proj_cache/html/check quantity variable_802f43425335a041d9b1fe14d2431c2d.RData
+script/proj_cache/html/check quantity variable_802f43425335a041d9b1fe14d2431c2d.rdb
+*.rdx
+*.RData
+*.rdb
+script/proj_cache/html/__packages
