@@ -42,4 +42,4 @@ Icon
 *.rdb
 *.Rhistory
 script/proj_cache/html/__packages
-.Rproj.user/40951E0D
+.Rproj.user
