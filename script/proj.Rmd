@@ -69,7 +69,7 @@ checkFactorVar <- function(x , y) {
 </ul>
 </span>
 
-```{r raw data process,echo=FALSE,prompt=FALSE}
+```{r raw data process,echo=FALSE,prompt=FALSE,cache=TRUE}
 # combine the data(NOT RUN)
 # df <- read.csv("./data/20141128_order_user_part1_82537.txt", header = F)
 # columnNameDf <- read.csv("./data/meta/columnName_part1.txt" , header = F)
@@ -92,45 +92,45 @@ checkFactorVar <- function(x , y) {
 # ```
 # 
 # ```{r read clean data,cache=TRUE,}
-# # read the data
-# df <- read.csv("./data/1_combinedData.csv")
+# read the data
+df <- read.csv("./data/1_combinedData.csv")
+
+#strip the sequence field
+df <- df[,-1]
 ```
 
+
 ```{r set type,echo=FALSE,prompt=FALSE}
-df$result <- as.factor(df$result)
-# df$OnlineId <- as.integer(df$OnlineId)
-df$JoinDate <- as.Date.character(df$JoinDate , "%Y%m%d")
-df$UserStatus <- as.factor(df$UserStatus)
-df$Warn5Flag <- as.factor(df$Warn5Flag)
-df$UserDelete <- as.factor(df$UserDelete)
-df$OaFlag <- as.factor(df$OaFlag)
-df$GenderId <- as.factor(df$GenderId)
-df$RegistedId <- as.factor(df$RegistedId)
-df$JtId <- as.factor(df$JtId)
-df$PlanId <- as.factor(df$PlanId)
-df$DeptId <- as.factor(df$DeptId)
-df$GroupFlag <- as.factor(df$GroupFlag)
-df$MighFlag <- as.factor(df$MighFlag)
-# df$UserAge <- as.integer(df$UserAge)
-df$SchoolFlag <- as.factor(df$SchoolFlag)
-df$CareerPrefer <- as.factor(df$CareerPrefer)
-df$CurPoints <- as.integer(df$CurPoints)
-df$PlanType <- as.factor(df$PlanType)
-df$PayType <- as.factor(df$PayType)
-df$ChkPrint <- as.factor(df$ChkPrint)
-df$AccFlag <- as.factor(df$AccFlag)
-df$IsQyMifi <- as.factor(df$IsQyMifi)
-df$Is4gFlag <- as.factor(df$Is4gFlag)
-# df$Imei14 not set
-# df$KeyImei not set
-# df$DateIpyhb <- as.Date(df$DateIpyhb , "%Y%m%d")
-df$Chk3yZf <- as.factor(df$Chk3yZf)
-# df$Date5ymy <- as.Date(df$Date5ymy , "%Y%m%d")
-df$DateMgtjhy <- as.Date.character(df$DateMgtjhy , "%Y%m%d")
-df$GprsType <- as.factor(df$GprsType)
-df$GprsStandardType <- as.factor(df$GprsStandardType)
-df$IphoneFlag <- as.factor(df$IphoneFlag)
-df$CreateChannel <- as.factor(df$CreateChannel)
+factorVarName <- c("SubId" , "result" , "UserStatus" , "Warn5Flag" , "UserDelete" , "OaFlag" , "GenderId" , 
+                   "RegistedId" , "JtId" , "PlanId" , "DeptId" , "GroupFlag" , "MighFlag" , "SchoolFlag" , 
+                   "CareerPrefer" , "PlanType" , "PayType" , "ChkPrint" , "AccFlag" , "IsQyMifi" , 
+                   "Is4gFlag" , "Chk3yZf" , "GprsType" , "GprsnfbType" ,"GprsStandardType" , "IphoneFlag" , 
+                   "CreateChannel" , "TrafficPromote_1" , "TrafficPromote_2" , "TrafficPromote_3" , 
+                   "Imei14Gprs" , "KeyImeiGprs" , "Imei14Durgprs" , "KeyImeiDurgprs")
+dateVarName <- c("JoinDate" , "DateIpyhb" , "Date5ymy" , "DateMmsbao" , "DateLaidian" , "DateYkltyxwb" ,
+                 "DateYkltytxb" , "DateYkltyqxb" , "DateDxhz" , "DateHdz" , "DateBmqx" , "DateJmqx" ,
+                 "DateQnzl" , "DateYybk" , "DateZkjlb" , "DateDxzkq" , "DateSjdh" , "DateQwsjb" , 
+                 "DateXwzwb" , "DateKxun" , "DateInews" , "DateSjthb" , "Date12580Bob" , "DateChinadaily" ,
+                 "DateYxwj" , "DateMryx" , "DateDxcxzzy" , "DateSjds" , "DateCfj" , "DateSjcp" , 
+                 "DateFetion" , "DateCailing" , "DateWxyyjlb" , "DateBdyyh" , "DateQwyyh" , 
+                 "DateMgtjhy" , "DateNewspaper" , "DateXstc5y" , "DateXstc10y" , "DateSjdm" , 
+                 "SubscribeDate" , "UnsubscribeDate" , "DateGprs" , "FirstDoneDate" , "DateXsll10y" ,
+                 "DateGprsQuarter30y" , "DateGprsQuarter60y" , "DateGprsQuarter90y" , "DateGprsBnb60y" ,
+                 "DateGprsBnb120y" , "DateGprsBnb180y" , "Date4gZdjyb" , "DateGprsOverheadYhb" , 
+                 "DatePublicWlan" , "DateSchoolWlan" , "DateWlanzd")
+
+setType <- function(x , factorOnly = F){
+  for( varName in factorVarName ){
+      x[,varName] <- as.factor(as.character(x[,varName]))
+    }
+  if(!factorOnly){
+    for( varName in dateVarName ) {
+        x[,varName] <- as.Date.character(x[,varName] , "%Y%m%d")
+      }
+  }
+  x
+}
+df <- setType(df)
 ```
 
 ##2.数据理解
@@ -154,29 +154,88 @@ df$CreateChannel <- as.factor(df$CreateChannel)
 </span>
 
 <b>粗略地检查一下各个指标的数据质量</b>
-```{r exam the data quality,cache=TRUE}
-missingField <- which(sapply(df , MissingPer <- function(x){sum(is.na(x)) / length(x)}) > .5)
+```{r exam the data quality}
+missingField <- which(sapply(df , MissingPer <- function(x){sum(is.na(x)) / length(x)}) > .1)
 
+missingField
+```
+
+```{r,fig.height=30,fig.width=5}
+varMissingPer <- sapply(df , MissingPer <- function(x){sum(is.na(x)) / length(x)})
+dotchart(varMissingPer[varMissingPer>0.1], cex = 0.5)
+```
+
+某些变量是缺失由于数据的缺失引起的，某些变量是由于NA具有别的含义，比如DateIpyhb等变量中NA表示用户未订购，如果直接去除会造成信息丢失。</br>
+对此构建两个新变量IsDateIpyhb表示是否订购过，DateIpyhb_N将原有的NA替换为0，是回归模型能使用此变量内容
+
+<b>注：由于要设置每个Date字段的Date属性暂时没有处理这些字段，待之后处理</b>
+```{r}
+table(df$DateIpyhb , useNA = 'ifany')
+
+subcribeDateVarname <- names(missingField)[grep('^Date' , names(missingField))]
+subcribeDateVarname
+
+for( varname in subcribeDateVarname){
+  logicVarname <- paste("Is" , varname , sep = "")
+  factorVarName <- append(factorVarName , logicVarname)
+  transVarname <- paste(varname , "_N" , sep = "")
+  dateVarName <- append(dateVarName , transVarname)
+  df[,logicVarname] <- ifelse(is.na(df[,varname]) , 0 , 1)
+  df[,transVarname] <- ifelse(is.na(df[,varname]) , 0 , as.Date.character(df[,varname]))
+  }
+```
+
+除此以外的数据缺失字段，分析变量的具体含义还有以下变量具有和上面Date字段类似的情况
+```{r}
+# setdiff(names(missingField) , subcribeDateVarname)
+# 
+# subscribeVarname <- c("Chk3yZf" , 
+#                       "TvMonthUser" , 
+#                       "TvCounts" , 
+#                       "TvClientUser" , 
+#                       "LogonCnt" , 
+#                       "LogonCnt" , 
+#                       "CntNewspaper" , 
+#                       "InfoIqCnt" , 
+#                       "SubscribeDate" , 
+#                       "UnsubscribeDate" , 
+#                       "PgpType" , 
+#                       "PgpKb" , 
+#                       "GprsnfbSurplusDay" , 
+#                       "Gprs5jyCnt" , 
+#                       "Gprs15jyCnt" , 
+#                       "GprsType4g" , )
+# 
+# for( varname in subcribeDateVarname){
+#   logicVarname <- paste("Is" , varname , sep = "")
+#   transVarname <- paste(varname , "_N" , sep = "")
+#   df[,logicVarname] <- ifelse(is.na(df[,varname]) , 0 , 1);df[,logicVarname] <- as.factor(df[,logicVarname])
+#   if( is.factor(df[,varname]))
+#     df[,transVarname] <- ifelse(is.na(df[,varname]) , 0 , as.factor(as.character(df[,varname])))
+#   else if( is.date(df[,varname]))
+#     df[,transVarname] <- ifelse(is.na(df[,varname]) , 0 , as.Date(as.character(df[,varname])))
+#   else
+#     df[,transVarname] <- ifelse(is.na(df[,varname]) , 0 , df[,varname])
+#   }
+```
+
+
+```{r}
 # TODO: EXAM THE MISSING VALUE VARIABLE
 # stip the missingField
 df <- df[ , -missingField]
-
-factorField <- which(sapply(df , is.factor))
-
-# strip the id field
-factorField <- factorField[-1]
-
-# strip too many levels factor variable
-factorFieldTooManyLevels <- which(sapply(df , 
-                                         getTooManyLevelsVar <- function(x) { length(levels(x)) > 20 }))
-factorField <- factorField[!names(factorField) %in% names(factorFieldTooManyLevels)]
-factorField <- setdiff(factorField , factorFieldTooManyLevels)
-# TODO: DEAL WITH THE TOO MANY LEVELS VARIABLE
-
-#general check the factor variable
-sapply(df[,factorField] , genContegencyTable <- function(x , y){ table(x , y)} , df$result)
+factorVarName <- setdiff(factorVarName,names(missingField))
+dateVarName <- setdiff(dateVarName , names(missingField))
 ```
-<b>根据上述因子类变量与结果的关系需要剔除异常数据</b>
+
+```{r}
+table(df$UserStatus , df$result , useNA = 'ifany')
+table(df$Warn5Flag , df$result , useNA = 'ifany')
+table(df$UserDelete , df$result , useNA = 'ifany')
+table(df$OaFlag , df$result , useNA = 'ifany')
+```
+
+<b>剔除异常数据</b>
 UserStatus == 100其他剔除(下同)<br/>
 Warn5Flag == 0<br/>
 UserDelete == 0<br/>
@@ -184,7 +243,83 @@ OaFlag == 0<br/>
 
 ```{r data clean}
 df <- subset(df , UserStatus == 100 & Warn5Flag == 0 & UserDelete == 0 & OaFlag == 0 , 
-             select = -c(UserStatus , Warn5Flag , UserDelete , OaFlag))
+              select = c(-UserStatus , -Warn5Flag , -UserDelete , -OaFlag))
+factorVarName <- setdiff(factorVarName,c('UserStatus' , 'Warn5Flag' , 'UserDelete' , 'OaFlag'))
+```
+
+这里去掉了套餐类型等数据
+TODO:对此类数据需要进一步提取信息加以使用
+
+```{r}
+df <- setType(df , factorOnly = T)
+
+# too many levels
+factorLevel <- sapply(df[,which(sapply(df , is.factor))] , function(x){ length(levels(x))})
+quantile(factorLevel , probs = seq(.5,.9,.1))
+factorFieldTooManyLevels <- names(which(factorLevel > 20))
+factorVarName <- setdiff(factorVarName , factorFieldTooManyLevels)
+df <- df[ , which(!names(df) %in% factorFieldTooManyLevels)]
+
+# level with too few case
+checkLevelCases <- function(x , y = ""){
+  out <- data.frame()
+  for( level in levels(x)){
+      out <- rbind(out , data.frame(varName = y , 
+                                    levelName = level , 
+                                    caseNum = length(which(x == level))))
+    }
+  return( out )
+  }
+levelCases <- data.frame()
+for( var in factorVarName ){
+  levelCases <- rbind( levelCases , checkLevelCases(df[,var] , var))
+  }
+levelCases[which(levelCases$caseNum < 10),]
+df[df$JtId == 0 , 'JtId'] <- NA
+df[df$PayType == 6 , 'PayType'] <- NA
+df[df$AccFlag == 0 , 'AccFlag'] <- NA
+df[df$GprsnfbType == "20_B" | df$GprsnfbType == "200_B" | df$GprsnfbType == "200_N" | df$GprsnfbType == "50_B" | df$GprsnfbType == "50_N", 'GprsnfbType'] <- NA
+df[df$IsDateGprsQuarter90y == 1 , 'IsDateGprsQuarter90y'] <- NA
+df[df$IsDateGprsBnb60y == 1 , 'IsDateGprsBnb60y'] <- NA
+df <- setType(df , factorOnly = T)
+
+
+# only one level
+factorLevel <- sapply(df[,which(sapply(df , is.factor))] , function(x){ length(levels(x))})
+factorFieldOnlyOneLevel <- names(which(factorLevel == 1))
+factorVarName <- setdiff(factorVarName , factorFieldOnlyOneLevel)
+
+df <- df[ , which(!names(df) %in% factorFieldOnlyOneLevel)]
+df <- setType(df , factorOnly = T)
+```
+
+```{r inspect quantity variable}
+# only one value
+numbericVar <- setdiff(names(which(sapply(df , is.numeric))) , dateVarName)
+
+checkFewUniqueValue <- function(x , y = "") {
+  require(Hmisc)
+  r <- describe(x)
+  uniqueValue <- as.numeric(r$counts['unique'])
+  counts <- as.numeric(r$counts['n'])
+  out <- data.frame(varName = y , 
+                    uniquePercent = uniqueValue / counts , 
+                    uniqueValue = uniqueValue)
+  return( out )
+  }
+
+varUniqueValue <- data.frame()
+for( var in numbericVar ){
+  varUniqueValue <- rbind(varUniqueValue , checkFewUniqueValue(df[,var] , var))
+  }
+FewValueQuantityVar <- as.character(varUniqueValue[varUniqueValue$uniqueValue < 100 , 'varName'])
+df <- df[,-which(names(df) %in% FewValueQuantityVar)]
+```
+
+Date型的数据在R中是按照数值型处理的，要实际使用需要进一步提取信息
+
+```{r}
+df <- df[,-which(names(df) %in% dateVarName)]
 ```
 
 
@@ -195,67 +330,103 @@ validation <- df[ -inBuildIdx , ]
 trainIdx <- createDataPartition(inBuild$result , p = .7 , list = F)
 training <- inBuild[ trainIdx , ]
 testing <- inBuild[ -trainIdx , ]
+rm(inBuild , df)
 ```
 
-```{r explore relationship}
-factorField <- which(sapply(training , is.factor))
-factorFieldTooManyLevels <- which(sapply(df , 
-                                         getTooManyLevelsVar <- function(x) { length(levels(x)) > 20 }))
-(factorFieldCadinate <- factorField[!names(factorField) %in% names(factorFieldTooManyLevels)])
-factorFieldCadinateP.val <- sapply(training[,factorFieldCadinate] , checkFactorVar , training$result)
-(factorFieldCadinateNotSig <- which(!factorFieldCadinateP.val < .05))
-factorFieldCadinate <- setdiff(factorFieldCadinate , factorFieldCadinateNotSig)
-sapply(training[ , factorFieldCadinate] , genContegencyTable , training$result)
-```
-<b>以下指标无用</b>
-<ul>
-    <li>ChkPrint</li>
-    <li>AccFlag</li>
-    <li>IsQyMifi</li>  
-</ul>
 
-<b>检查数值类指标</b>
-```{r check quantity variable,cache=TRUE}
-(quantityField <- which(sapply(training , is.numeric)))
-
-# TODO: CHECK FOR NEAR-ZERO VARIABLE
-quantityFieldNZF <- nearZeroVar(training[,quantityField] , saveMetrics = T)
-```
-
-##对于每一个候选的数值型变量
-<span>做个图？</span>
-```{r plot for qualitative_quantivative analysis}
-histogram( ~ log10(CurPoints + 1) | result , data = training)
-densityplot( ~ log10(CurPoints + 1) | result , data = training)
-plot(density(log10(training[ training$result == 0 , 'CurPoints'] + 1)) , main = "")
-points(density(log10(training[ training$result == 1 , 'CurPoints']+1)) , col = "red" , type = 'l')
-bwplot( ~ log10(CurPoints + 1) | result , data = training)
-
-```
-<span>数值检验型</span>
+```{r variable selection(wrap method)}
+# ---------------
+# for linear/logistic regression variable is preferred to be normalized
+# require(e1071)
+# sapply(checkData[,which(!sapply(checkData,is.factor))] , skewness)
+quantitativeVarIdx <- which(sapply(training,is.numeric))
+quantitativeVarLogName <- paste( names(quantitativeVarIdx) , "l" , sep = "_" )
+for( idx in 1:length(quantitativeVarIdx) ){
+    training[ , quantitativeVarLogName[idx]] <- log10( training[ , quantitativeVarIdx[idx]] + 1 )
+  }
+training <- training[ , -quantitativeVarIdx]
 
 
-##检查网龄指标
+#select and filter the variable
+notUsedVar <- c("GprsDjFeeOld_l" , "GprsGjroamFeeOld_l")
+training <- training[ , -which(names(training) %in% notUsedVar)]
 
-```{r check OnlineId}
-calcuMissing(training[ , "OnlineId"])
-boxplot(training$OnlineId ~ training$result)
-by(training$OnlineId , training$result , stat.desc)
-plot(density(training[ training$result == 0 , 'OnlineId']) , main = "")
-points(density(training[ training$result == 1 , 'OnlineId']) , col = "red" , type = 'l')
-uniVarLogistic <- glm(result ~ OnlineId , data = training , family = binomial)
-summary(uniVarLogistic)
-```
-网龄和是否购买有一定的关系，但这个是一个很弱的预测变量
+ctrl <- rfeControl(functions = lrFuncs,
+                   rerank = T,
+                   number = 5,
+                   allowParallel = T,
+                   method = "cv",
+                   verbose = T )
+ctrl$functions$selectSize <- pickSizeTolerance
+subsets <- c(10, 15 , 20 , 25 , 30 , 50 , 70)
 
-##检查年龄指标
-```{r check UserAge}
-calcuMissing(training$UserAge)
-boxplot(training$UserAge ~ training$result)
-stat.desc(training$UserAge)
+# test purpose
+# subsets <- c(20 , 25)
+
+# test purpose
+# checkData_trainX_idx <- createDataPartition(checkData$result , p = .7 , list = F)
+# checkData_trainX <- subset(checkData[checkData_trainX_idx , ] , select = -result)
+# checkData_trainY <- checkData[checkData_trainX_idx , 'result']
+# checkData_testX <- subset(checkData[-checkData_trainX_idx , ] , select = -result)
+# checkData_testY <- checkData[-checkData_trainX_idx , 'result']
+# onePassProfile <- rfeIter(checkData_trainX , checkData_trainY , checkData_testX , checkData_testY , 
+#         sizes = subsets , rfeControl = ctrl , label = 'One Pass Select')
+# fmla <- as.formula(paste("checkData_trainY ~ " , paste(row.names(onePassProfile$finalVariables[[1]]) , collapse = '+')))
+# fit <- glm(fmla , data = checkData_trainX , family = binomial)
+
+# parallel 
+require(doParallel)
+cl <- makeCluster(4)
+registerDoParallel(cl)
+
+lrProfile <- rfe(result ~ . , data = training , metric = 'Kappa' , size = subsets , rfeControl = ctrl)
+
+stopCluster(cl)
+
 
 ```
-<b>这个指标没用</b>
 
-#3.数据准备
-衍生变量如何生成
+```{r variable selection(filter method)}
+
+```
+
+
+```{r train/tune model}
+# for qualitative var, a dict map its design name to origin name , for quantitative var it's original name
+qualitativeVarLevels <- lrProfile$xlevels
+qualiVarLen <- length(qualitativeVarLevels)
+qualitativeVarMap <- vector()
+for( idx in 1:qualiVarLen)
+{
+  levelLength <- length(qualitativeVarLevels[[idx]])
+  qualitativeVarMap <- append(qualitativeVarMap , 
+                              setNames(rep(names(qualitativeVarLevels[idx]) , levelLength - 1 ) , 
+                                       paste(names(qualitativeVarLevels[idx]) , qualitativeVarLevels[[idx]][2:levelLength] ,sep = "")))
+}
+
+
+#generate the formular
+# bestSize <- lrProfile$bestSubset #User Can also select the best size by hand
+bestSize <- 50
+bestVar <- lrProfile$variables[lrProfile$variables$Variables == bestSize & lrProfile$variables$Resample == 'Fold1' , 'var']
+bestVarOrignName <- unique(ifelse(is.na(qualitativeVarMap[bestVar]) , bestVar , qualitativeVarMap[bestVar]))
+fmla <- as.formula(paste("result ~ " , paste(bestVarOrignName , collapse = '+')))
+
+
+# start to fit the model
+fitCtrl <- trainControl(method = 'cv' , 
+                        number = 5,
+                        allowParallel = T , 
+                        classProbs = T , 
+                        summaryFunction = twoClassSummary)
+
+# parallel 
+require(doParallel)
+cl <- makeCluster(4)
+registerDoParallel(cl)
+
+model1 <- train( fmla , data = training , method = 'glm' , trControl = fitCtrl , family = binomial , metric = 'ROC')
+
+stopCluster(cl)
+```
+
